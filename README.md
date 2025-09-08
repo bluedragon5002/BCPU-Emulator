@@ -14,6 +14,6 @@ the instruction set is as follows
 - 1010 - CMP subtracts Y from X and discards the difference
 - 1011 - AND bitwise and (X & Y)
 - 1100 - OR  bitwise or (X | Y)
-- 1101 - JSR jump to subroutine //todo
+- 1101 - JSR jump to subroutine (not yet implemented, acts as nop)
 - 1110 - JMP jump to address
-- 1111 - BNE branch if not equal
+- 1111 - BEQ branch if equal

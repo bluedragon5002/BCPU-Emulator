@@ -1,0 +1,43 @@
+#ifndef PROGRAMS_H
+#define PROGRAMS_H
+
+#include <cstdint>
+typedef uint8_t Byte;
+
+// Parity-check program (default):
+// - Loads input from 0xF0 into RegY
+// - Sets RegX = 1, ANDs RegX & RegY => LSB in A, sets Z if zero (even)
+// - If zero (even) writes 0xFF to 0xE0, otherwise writes 0x00 to 0xE0
+// Memory layout (addresses shown in comments inside main.cpp when printed)
+static const Byte parity_program[] = {
+    0x06, 0xF0, // LDY 0xF0
+    0x04, 0x01, // SNX 0x01
+    0x0B, 0x00, // AND
+    0x0F, 0x0E, // BEQ 0x0E
+    0x04, 0x00, // SNX 0x00
+    0x02, 0xE0, // STX 0xE0
+    0x0E, 0x12, // JMP 0x12
+    0x04, 0xFF, // SNX 0xFF
+    0x02, 0xE0, // STX 0xE0
+    0x00, 0xFF  // HALT
+};
+static const size_t parity_program_size = sizeof(parity_program) / sizeof(parity_program[0]);
+
+// Original program (kept for reference / testing)
+static const Byte original_program[] = {
+    0x06, 0xF0, // LDY 0xF0
+    0x04, 0xFF, // SNX 0xFF
+    0x0B, 0x00, // AND
+    0x05, 0x00, // LDX 0x00
+    0x0A, 0x00, // CMP
+    0x0F, 0x12, // BEQ 0x12
+    0x04, 0x00, // SNX 0x00
+    0x02, 0xE0, // STX 0xE0
+    0x0E, 0x16, // JMP 0x16
+    0x04, 0xFF, // SNX 0xFF
+    0x02, 0xE0, // STX 0xE0
+    0x00, 0xFF  // HALT
+};
+static const size_t original_program_size = sizeof(original_program) / sizeof(original_program[0]);
+
+#endif // PROGRAMS_H

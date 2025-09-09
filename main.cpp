@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <limits>
 #include <algorithm>
+#include "programs.h"
 
 using std::cout;
 using std::cerr;
@@ -37,6 +38,7 @@ public:
     }
 
     void Fill(const Byte* data, size_t len, Word offset = 0) {
+        if (offset >= SIZE) return;
         if (offset + len > SIZE) len = SIZE - offset;
         for (size_t i = 0; i < len; ++i) RAM[offset + i] = data[i];
     }
@@ -182,31 +184,39 @@ private:
 int main(int argc, char** argv) {
     // Set debug to false by default, set to true for verbose instruction trace
     bool debug = false;
+    // Allow selecting program by name on the command line. Default: "parity".
+    const char* programName = "parity";
+    for (int i = 1; i < argc; ++i) {
+        std::string s(argv[i]);
+        if (s == "--debug") debug = true;
+        else if (s.rfind("--program=", 0) == 0) programName = s.c_str() + 10;
+    }
+
     CPU cpu(Ram, debug);
 
-    // Example program (same as original) -- keep as vector so size is clear
-    std::vector<Byte> program = {
-        0x06, 0xF0, // LDY 0xF0   00
-        0x04, 0xFF, // SNX 0xFF   02
-        0x0B, 0x00, // AND        04
-        0x05, 0x00, // LDX 0x00   06
-        0x0A, 0x00, // CMP        08
-        0x0F, 0x12, // BEQ 0x12   0A
-        0x04, 0x00, // SNX 0x00   0C
-        0x02, 0xE0, // STX 0xE0   0E
-        0x0E, 0x16, // JMP 0x16   10  (note: original comment referenced 0x1C)
-        0x04, 0xFF, // SNX 0xFF   12
-        0x02, 0xE0, // STX 0xE0   14
-        0x00, 0xFF  // HALT       16
-    };
+    // Choose program data from programs.h
+    const Byte* progData = nullptr;
+    size_t progSize = 0;
+
+    if (std::string(programName) == "parity") {
+        progData = parity_program;
+        progSize = parity_program_size;
+    } else if (std::string(programName) == "original") {
+        progData = original_program;
+        progSize = original_program_size;
+    } else {
+        cerr << "Unknown program name '" << programName << "'. Using 'parity'.\n";
+        progData = parity_program;
+        progSize = parity_program_size;
+    }
 
     // Load program into RAM starting at 0
     Ram.Clear();
-    Ram.Fill(program.data(), program.size(), 0);
+    Ram.Fill(progData, progSize, 0);
 
     // Print program memory snapshot
     cout << "Program memory snapshot:\n";
-    for (size_t i = 0; i < program.size(); ++i) {
+    for (size_t i = 0; i < progSize; ++i) {
         cout << "Ram at 0x" << std::hex << i << ": 0x" << std::setw(2) << std::setfill('0') << int(Ram.Read8(i)) << std::dec << "\n";
     }
 
